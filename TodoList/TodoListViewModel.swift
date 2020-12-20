@@ -1,57 +1,96 @@
+import Combine
 import SwiftUI
 
 class TodoListViewModel: ObservableObject {
-    @Published private(set) var tasks: [Task]
+    @Published private(set) var tasks = [Task]()
     @Published var name = "" {
         didSet {
             addTaskIsEnabled = !name.isEmpty
         }
     }
     @Published var addTaskIsEnabled: Bool = false
+
     private let todoStorage: TodoStorage
+    private var cancellables = [AnyCancellable]()
+    private var cancellable: AnyCancellable?
 
     init() {
         self.todoStorage = TodoStorage.shared
-        self.tasks = todoStorage.fetchTasks()
-        sortTasks()
+        todoStorage.fetchTasks()
+            .map { $0 }
+            .receive(on: DispatchQueue.main)
+            .sink { error in
+                print(error)
+        }
+        receiveValue: { [weak self] tasks in
+            self?.tasks = tasks
+            self?.sortTasks()
+        }
+            .store(in: &cancellables)
     }
 
     private func sortTasks() {
-//        withAnimation {
-//            tasks.sort(by: { !$0.done && $1.done ||
-//                    ($0.done == $1.done && $0.priority > $1.priority) ||
-//                    ($0.done == $1.done && $0.priority == $1.priority && $0.name ?? "" < $1.name ?? "")
-//            })
-//        }
+        cancellable?.cancel()
+        withAnimation {
+            tasks.sort(by: { !$0.done && $1.done ||
+                    ($0.done == $1.done && $0.priority > $1.priority) ||
+                    ($0.done == $1.done && $0.priority == $1.priority && $0.name ?? "" < $1.name ?? "")
+            })
+        }
     }
 
-    private func updateTasks() {
-        tasks = todoStorage.fetchTasks()
+    private func updateTask(withId id: UUID, priority: Int16?, done: Bool?) {
+        guard let task = tasks.filter({ $0.id == id }).first else {
+            return
+        }
+        if let priority = priority {
+            task.priority = priority
+        }
+        if let done = done {
+            task.done = done
+        }
         sortTasks()
     }
 
     func addTask() {
-        guard let task = todoStorage.addTask(withName: name) else {
-            return
+        defer {
+            name = ""
         }
-        tasks.append(task)
-        print(tasks)
-        sortTasks()
-        name = ""
+        cancellable = todoStorage.addTask(withName: name)
+            .sink(receiveValue: { [weak self] task in
+                guard let task = task else {
+                    return
+                }
+                self?.tasks.append(task)
+                self?.sortTasks()
+            })
     }
 
-    func changeCompleteness(taskId id: NSUUID, isDone done: Bool) {
-        todoStorage.changeCompleteness(taskId: id, isDone: done)
-        updateTasks()
+    func changeCompleteness(taskId id: UUID) {
+        cancellable = todoStorage.changeCompleteness(taskId: id)
+            .sink(receiveCompletion: { result in
+                switch result {
+                case .failure(let error):
+                    print(error)
+                case .finished:
+                    print("Completeness is changed")
+                }
+            }, receiveValue: { [weak self] done in
+                self?.updateTask(withId: id, priority: nil, done: done)
+            })
     }
 
-    func increasePriority(taskId id: NSUUID) {
-        todoStorage.increasePriority(taskId: id)
-        updateTasks()
-    }
-
-    func decreasePriority(taskId id: NSUUID) {
-        todoStorage.decreasePriority(taskId: id)
-        updateTasks()
+    func changePriority(taskId id: UUID, increase: Bool) {
+        cancellable = todoStorage.changePriority(taskId: id, increase: increase)
+            .sink(receiveCompletion: { result in
+                switch result {
+                case .failure(let error):
+                    print(error)
+                case .finished:
+                    print("Priority is changed")
+                }
+            }, receiveValue: { [weak self] priority in
+                self?.updateTask(withId: id, priority: priority, done: nil)
+            })
     }
 }

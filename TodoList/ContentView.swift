@@ -5,25 +5,25 @@ struct TodoCellView: View {
     let viewModel: TodoListViewModel
 
     var body: some View {
-        guard let taskId = task.id as NSUUID? else {
+        guard let taskId = task.id else {
             fatalError("Task has no ID")
         }
         return HStack(alignment: .center) {
-            Button(action: { viewModel.changeCompleteness(taskId: taskId, isDone: !task.done) }) {
+            Button(action: { viewModel.changeCompleteness(taskId: taskId) }) {
                 HStack(alignment: .top) {
                     Image(systemName: task.done ? "checkmark.circle.fill" : "circle").colorScheme(.light)
                     let color: Color = task.done ? .gray : .black
                     Text(task.name ?? "Undefined")
                         .foregroundColor(color)
                         .strikethrough(task.done, color: .green)
-                    Text(task.priority?.description ?? "Undefined")
+                    Text(task.priority.description)
                         .foregroundColor(color)
                 }
             }.buttonStyle(BorderlessButtonStyle())
-            Button(action: { viewModel.increasePriority(taskId: taskId) }) {
+            Button(action: { viewModel.changePriority(taskId: taskId, increase: true) }) {
                 Image(systemName: "arrowtriangle.up.fill")
             }.buttonStyle(BorderlessButtonStyle())
-            Button(action: { viewModel.decreasePriority(taskId: taskId) }) {
+            Button(action: { viewModel.changePriority(taskId: taskId, increase: false) }) {
                 Image(systemName: "arrowtriangle.down.fill")
             }.buttonStyle(BorderlessButtonStyle())
         }

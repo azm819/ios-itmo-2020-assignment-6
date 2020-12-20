@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0333DF38258F8B4200E04E8E /* CDPublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0333DF37258F8B4200E04E8E /* CDPublisher.swift */; };
 		03691F71258ECD080032D86A /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 03691F6F258ECD080032D86A /* Model.xcdatamodeld */; };
 		03691F74258ED0020032D86A /* TodoStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03691F73258ED0020032D86A /* TodoStorage.swift */; };
 		DC4D89D1257DF85300447921 /* TodoListApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC4D89D0257DF85300447921 /* TodoListApp.swift */; };
@@ -17,6 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0333DF37258F8B4200E04E8E /* CDPublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CDPublisher.swift; sourceTree = "<group>"; };
 		03691F70258ECD080032D86A /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		03691F73258ED0020032D86A /* TodoStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoStorage.swift; sourceTree = "<group>"; };
 		DC4D89CD257DF85300447921 /* TodoList.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TodoList.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -59,6 +61,7 @@
 			isa = PBXGroup;
 			children = (
 				DC4D89D4257DF85300447921 /* Assets.xcassets */,
+				0333DF37258F8B4200E04E8E /* CDPublisher.swift */,
 				DC4D89D2257DF85300447921 /* ContentView.swift */,
 				DC4D89D9257DF85300447921 /* Info.plist */,
 				03691F6F258ECD080032D86A /* Model.xcdatamodeld */,
@@ -147,6 +150,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0333DF38258F8B4200E04E8E /* CDPublisher.swift in Sources */,
 				DC4D89D3257DF85300447921 /* ContentView.swift in Sources */,
 				03691F71258ECD080032D86A /* Model.xcdatamodeld in Sources */,
 				DC4D89D1257DF85300447921 /* TodoListApp.swift in Sources */,
