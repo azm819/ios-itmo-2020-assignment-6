@@ -2,24 +2,28 @@ import SwiftUI
 
 struct TodoCellView: View {
     @StateObject var task: Task
+    let viewModel: TodoListViewModel
 
     var body: some View {
-        HStack(alignment: .center) {
-            Button(action: { task.toggle() }) {
+        guard let taskId = task.id as NSUUID? else {
+            fatalError("Task has no ID")
+        }
+        return HStack(alignment: .center) {
+            Button(action: { viewModel.changeCompleteness(taskId: taskId, isDone: !task.done) }) {
                 HStack(alignment: .top) {
                     Image(systemName: task.done ? "checkmark.circle.fill" : "circle").colorScheme(.light)
                     let color: Color = task.done ? .gray : .black
-                    Text(task.name)
+                    Text(task.name ?? "Undefined")
                         .foregroundColor(color)
                         .strikethrough(task.done, color: .green)
-                    Text(String(task.priority))
+                    Text(task.priority?.description ?? "Undefined")
                         .foregroundColor(color)
                 }
             }.buttonStyle(BorderlessButtonStyle())
-            Button(action: { task.increasePriority() }) {
+            Button(action: { viewModel.increasePriority(taskId: taskId) }) {
                 Image(systemName: "arrowtriangle.up.fill")
             }.buttonStyle(BorderlessButtonStyle())
-            Button(action: { task.decreasePriority() }) {
+            Button(action: { viewModel.decreasePriority(taskId: taskId) }) {
                 Image(systemName: "arrowtriangle.down.fill")
             }.buttonStyle(BorderlessButtonStyle())
         }
@@ -40,7 +44,7 @@ struct TodoListView: View {
                 }.disabled(!viewModel.addTaskIsEnabled)
             }
             List(viewModel.tasks) { task in
-                TodoCellView(task: task)
+                TodoCellView(task: task, viewModel: viewModel)
             }
         }
     }

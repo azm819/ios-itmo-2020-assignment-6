@@ -1,78 +1,57 @@
 import SwiftUI
 
-protocol TaskDelegate {
-    func taskIsUpdated()
-}
-
-class Task: Identifiable, ObservableObject {
-    private static let MAX_PRIORITY = 10
-    private static let MIN_PRIORITY = 1
-
-    private let delegate: TaskDelegate
-
-    @Published private(set) var done: Bool = false {
-        didSet {
-            if oldValue != done {
-                delegate.taskIsUpdated()
-            }
-        }
-    }
-    @Published private(set) var priority = Task.MIN_PRIORITY {
-        didSet {
-            if oldValue != priority {
-                delegate.taskIsUpdated()
-            }
-        }
-    }
-
-    var id = UUID()
-    var name: String
-
-    init(name: String, delegate: TaskDelegate) {
-        self.name = name
-        self.delegate = delegate
-    }
-
-    func toggle() {
-        done.toggle()
-    }
-
-    func increasePriority() {
-        priority = min(priority + 1, Task.MAX_PRIORITY)
-    }
-
-    func decreasePriority() {
-        priority = max(priority - 1, Task.MIN_PRIORITY)
-    }
-}
-
 class TodoListViewModel: ObservableObject {
-    @Published private(set) var tasks = [Task]()
+    @Published private(set) var tasks: [Task]
     @Published var name = "" {
         didSet {
             addTaskIsEnabled = !name.isEmpty
         }
     }
     @Published var addTaskIsEnabled: Bool = false
+    private let todoStorage: TodoStorage
+
+    init() {
+        self.todoStorage = TodoStorage.shared
+        self.tasks = todoStorage.fetchTasks()
+        sortTasks()
+    }
 
     private func sortTasks() {
-        withAnimation {
-            tasks.sort(by: { !$0.done && $1.done ||
-                    ($0.done == $1.done && $0.priority > $1.priority) ||
-                    ($0.done == $1.done && $0.priority == $1.priority && $0.name < $1.name)
-            })
-        }
+//        withAnimation {
+//            tasks.sort(by: { !$0.done && $1.done ||
+//                    ($0.done == $1.done && $0.priority > $1.priority) ||
+//                    ($0.done == $1.done && $0.priority == $1.priority && $0.name ?? "" < $1.name ?? "")
+//            })
+//        }
+    }
+
+    private func updateTasks() {
+        tasks = todoStorage.fetchTasks()
+        sortTasks()
     }
 
     func addTask() {
-        tasks.append(Task(name: name, delegate: self))
+        guard let task = todoStorage.addTask(withName: name) else {
+            return
+        }
+        tasks.append(task)
+        print(tasks)
         sortTasks()
         name = ""
     }
-}
 
-extension TodoListViewModel: TaskDelegate {
-    func taskIsUpdated() {
-        sortTasks()
+    func changeCompleteness(taskId id: NSUUID, isDone done: Bool) {
+        todoStorage.changeCompleteness(taskId: id, isDone: done)
+        updateTasks()
+    }
+
+    func increasePriority(taskId id: NSUUID) {
+        todoStorage.increasePriority(taskId: id)
+        updateTasks()
+    }
+
+    func decreasePriority(taskId id: NSUUID) {
+        todoStorage.decreasePriority(taskId: id)
+        updateTasks()
     }
 }
